@@ -1,0 +1,100 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Inventario de Equipos</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newEquipmentModal">
+      + Nuevo Equipo
+    </button>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      
+      <ng-container *ngIf="equipments$ | async as equipments; else loadingTemplate">
+        
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Marca</th>
+              <th>Tipo</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="equipments.length === 0">
+              <td colspan="6" class="text-center py-4 text-muted">No hay equipos registrados aún.</td>
+            </tr>
+
+            <tr *ngFor="let item of equipments">
+              <td>#{{ item.id }}</td>
+              <td class="fw-bold">{{ item.name }}</td>
+              <td>{{ item.brand }}</td>
+              <td><span class="badge bg-secondary">{{ item.type }}</span></td>
+              <td>
+                <span class="badge" 
+                  [class.bg-success]="item.status === 'AVAILABLE'"
+                  [class.bg-warning]="item.status === 'PRESTADO'"
+                  [class.bg-danger]="item.status === 'MANTENIMIENTO'">
+                  {{ item.status }}
+                </span>
+              </td>
+              <td><button class="btn btn-sm btn-outline-danger">Eliminar</button></td>
+            </tr>
+          </tbody>
+        </table>
+
+      </ng-container>
+
+      <ng-template #loadingTemplate>
+        <div class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p class="mt-2 text-muted">Cargando inventario...</p>
+        </div>
+      </ng-template>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="newEquipmentModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Registrar Nuevo Equipo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="equipmentForm" (ngSubmit)="onSubmit()">
+          <div class="mb-3">
+            <label class="form-label">Nombre del Equipo</label>
+            <input type="text" class="form-control" formControlName="name" placeholder="Ej: Monitor Dell 24">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Marca</label>
+            <input type="text" class="form-control" formControlName="brand" placeholder="Ej: Dell">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" formControlName="type">
+              <option value="Laptop">Laptop</option>
+              <option value="Monitor">Monitor</option>
+              <option value="Periferico">Periférico</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary" [disabled]="equipmentForm.invalid">
+              Guardar Equipo
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

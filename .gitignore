@@ -1,0 +1,14 @@
+# Angular
+greentrack-frontend/node_modules/
+greentrack-frontend/dist/
+greentrack-frontend/.angular/
+.DS_Store
+
+# Java / Spring Boot
+greentrack-backend/target/
+greentrack-backend/.mvn/
+greentrack-backend/mvnw
+greentrack-backend/mvnw.cmd
+.idea/
+*.iml
+*.class

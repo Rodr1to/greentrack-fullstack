@@ -1,0 +1,114 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Gestión de Préstamos</h2>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#newLoanModal">
+      + Nuevo Préstamo
+    </button>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      
+      <ng-container *ngIf="loans$ | async as loans; else loading">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Equipo</th>
+              <th>Usuario Asignado</th>
+              <th>Fecha Préstamo</th>
+              <th>Fecha Devolución</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="loans.length === 0">
+              <td colspan="7" class="text-center py-4 text-muted">No hay préstamos activos.</td>
+            </tr>
+            <tr *ngFor="let loan of loans">
+              <td>#{{ loan.id }}</td>
+              <td class="fw-bold">{{ loan.equipment?.name || 'Equipo ID: ' + loan.equipmentId }}</td>
+              <td>{{ loan.userId }}</td>
+              <td>{{ loan.loanDate | date:'shortDate' }}</td>
+              <td>
+                <span *ngIf="loan.returnDate">{{ loan.returnDate | date:'shortDate' }}</span>
+                <span *ngIf="!loan.returnDate" class="text-muted">--</span>
+              </td>
+              <td>
+                <span class="badge" 
+                  [class.bg-success]="!loan.returnDate" 
+                  [class.bg-secondary]="loan.returnDate">
+                  {{ loan.returnDate ? 'FINALIZADO' : 'ACTIVO' }}
+                </span>
+              </td>
+              <td>
+                <button *ngIf="!loan.returnDate" 
+                        class="btn btn-sm btn-outline-warning"
+                        (click)="onReturn(loan.id)">
+                  Devolver
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </ng-container>
+
+      <ng-template #loading>
+        <div class="text-center py-5">
+          <div class="spinner-border text-success" role="status"></div>
+          <p class="mt-2 text-muted">Cargando préstamos...</p>
+        </div>
+      </ng-template>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="newLoanModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Asignar Equipo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="loanForm" (ngSubmit)="onSubmit()">
+          
+          <div class="mb-3">
+            <label class="form-label">Equipo Disponible</label>
+            <select class="form-select" formControlName="equipmentId">
+              <option value="" disabled selected>Selecciona un equipo...</option>
+              <ng-container *ngIf="availableEquipments$ | async as equipments">
+                <option *ngFor="let item of equipments" [value]="item.id">
+                  {{ item.name }} ({{ item.brand }})
+                </option>
+              </ng-container>
+            </select>
+            <div class="form-text text-danger" *ngIf="loanForm.get('equipmentId')?.invalid && loanForm.get('equipmentId')?.touched">
+              Debes seleccionar un equipo.
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">ID de Usuario / Empleado</label>
+            <input type="number" class="form-control" formControlName="userId" placeholder="Ej: 1">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Fecha de Préstamo</label>
+            <input type="date" class="form-control" formControlName="loanDate">
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-success" [disabled]="loanForm.invalid">
+              Registrar Préstamo
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
