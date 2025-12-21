@@ -1,35 +1,39 @@
 package com.greentrack.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDate;
 
 @Data
 @Entity
-@Table(name = "loans")
+@Table(name = "prestamos")
 public class Loan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "usuario_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "authorities", "password", "username", "enabled", "accountNonExpired", "accountNonLocked", "credentialsNonExpired"})
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "equipment_id", nullable = false)
+    @JoinColumn(name = "equipo_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Equipment equipment;
 
-    @Column(name = "loan_date", nullable = false)
+    @Column(name = "fecha_prestamo", nullable = false)
     private LocalDate loanDate;
 
-    @Column(name = "return_date")
+    @Column(name = "fecha_devolucion")
     private LocalDate returnDate;
 
     @Enumerated(EnumType.STRING)
-    private LoanStatus status = LoanStatus.ACTIVE;
+    @Column(name = "estado")
+    private LoanStatus status = LoanStatus.ACTIVO;
 
     public enum LoanStatus {
-        ACTIVE, DEVUELTO // "Devuelto" según requisito [cite: 43]
+        ACTIVO, DEVUELTO
     }
 }

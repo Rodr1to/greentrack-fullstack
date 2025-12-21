@@ -1,20 +1,25 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { LoansComponent } from './loans'; 
+import { HttpClientTestingModule } from '@angular/common/http/testing'; 
+import { ToastrModule } from 'ngx-toastr'; 
 
-import { Loans } from './loans';
-
-describe('Loans', () => {
-  let component: Loans;
-  let fixture: ComponentFixture<Loans>;
+describe('LoansComponent', () => {
+  let component: LoansComponent;
+  let fixture: ComponentFixture<LoansComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Loans]
+      imports: [
+        LoansComponent, 
+        HttpClientTestingModule, 
+        ToastrModule.forRoot()   
+      ] 
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Loans);
+    fixture = TestBed.createComponent(LoansComponent);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.detectChanges();
   });
 
   it('should create', () => {

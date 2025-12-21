@@ -1,14 +1,15 @@
 package com.greentrack.backend.service;
 
 import com.greentrack.backend.dto.EquipmentDTO;
+import com.greentrack.backend.dto.StockSummaryDTO;
 import com.greentrack.backend.entity.Equipment;
 import com.greentrack.backend.repository.EquipmentRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,40 +21,46 @@ public class EquipmentService {
         return equipmentRepository.findAll();
     }
 
-    // filtro
     public List<Equipment> search(String keyword) {
         return equipmentRepository.search(keyword);
     }
 
+    // filtros
+    public List<String> getBrands() {
+        return equipmentRepository.findDistinctBrands();
+    }
+
+    public List<String> getTypes() {
+        return equipmentRepository.findDistinctTypes();
+    }
+
+    // stock
+    public List<StockSummaryDTO> getStockSummary() {
+        return equipmentRepository.getStockSummary();
+    }
+
+    @Transactional
     public Equipment create(EquipmentDTO dto) {
-        // nombre unico
         if (equipmentRepository.existsByName(dto.getName())) {
             throw new IllegalArgumentException("Ya existe un equipo con el nombre: " + dto.getName());
         }
-
         Equipment equipment = new Equipment();
         equipment.setName(dto.getName());
-        equipment.setType(dto.getType());
         equipment.setBrand(dto.getBrand());
-        equipment.setStatus(Equipment.Status.AVAILABLE); // disponible por default
-
+        equipment.setType(dto.getType());
+        equipment.setStatus(Equipment.Status.DISPONIBLE); // por defecto
         return equipmentRepository.save(equipment);
     }
 
+    @Transactional
     public Equipment update(Long id, EquipmentDTO dto) {
-        Equipment existing = equipmentRepository.findById(id)
+        Equipment equipment = equipmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Equipo no encontrado"));
 
-        // si cambia nombre, validar que exista ya
-        if (!existing.getName().equals(dto.getName()) && equipmentRepository.existsByName(dto.getName())) {
-            throw new IllegalArgumentException("El nombre ya está en uso por otro equipo");
-        }
-
-        existing.setName(dto.getName());
-        existing.setType(dto.getType());
-        existing.setBrand(dto.getBrand());
-
-        return equipmentRepository.save(existing);
+        equipment.setName(dto.getName());
+        equipment.setBrand(dto.getBrand());
+        equipment.setType(dto.getType());
+        return equipmentRepository.save(equipment);
     }
 
     public void delete(Long id) {
@@ -63,7 +70,15 @@ public class EquipmentService {
         equipmentRepository.deleteById(id);
     }
 
-    public List<String> getBrands() {
-        return equipmentRepository.findDistinctBrands();
+    public List<Equipment> filter(String brand, String type, String statusStr) {
+        Equipment.Status statusEnum = null;
+        if (statusStr != null && !statusStr.isEmpty() && !statusStr.equals("TODOS")) {
+            try {
+                statusEnum = Equipment.Status.valueOf(statusStr);
+            } catch (IllegalArgumentException e) {
+                statusEnum = null;
+            }
+        }
+        return equipmentRepository.filter(brand, type, statusEnum);
     }
 }

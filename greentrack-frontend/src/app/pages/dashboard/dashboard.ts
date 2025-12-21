@@ -1,10 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { NavbarComponent } from '../../components/navbar/navbar';
 import { RouterLink } from '@angular/router';
 import { EquipmentService } from '../../services/equipment';
-import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { BehaviorSubject, Observable, combineLatest, switchMap, map, catchError, of } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -13,42 +13,53 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent {
   private equipmentService = inject(EquipmentService);
 
-  stats = {
-    totalEquipos: 0,
-    disponibles: 0,
-    prestados: 0
-  };
+  brandFilter$ = new BehaviorSubject<string>('TODOS');
+  typeFilter$ = new BehaviorSubject<string>('TODOS');
 
-  selectedBrand: string = 'TODOS';
+  stats$: Observable<any> = combineLatest([
+    this.equipmentService.refresh$, 
+    this.brandFilter$,              // marca
+    this.typeFilter$                // tipo
+  ]).pipe(
+    switchMap(([_, brand, type]) => 
+      this.equipmentService.getStats(brand, type).pipe(
+        catchError(err => {
+          console.error('Error en Dashboard:', err);
+          return of({ totalEquipos: 0, disponibles: 0, prestados: 0 }); // Retorna ceros en vez de morir
+        })
+      )
+    )
+  );
+
+  brands$ = this.equipmentService.getBrands().pipe(
+    map(b => ['TODOS', ...b]),
+    catchError(() => of(['TODOS']))
+  );
   
-  brands: string[] = ['TODOS'];
+  types$ = this.equipmentService.getTypes().pipe(
+    map(t => ['TODOS', ...t]),
+    catchError(() => of(['TODOS']))
+  );
 
-  ngOnInit() {
-    this.loadBrands(); 
-    this.loadStats();  
+  get selectedBrand(): string { return this.brandFilter$.value; }
+  set selectedBrand(val: string) { 
+    if (val !== 'TODOS') this.typeFilter$.next('TODOS'); 
+    this.brandFilter$.next(val); 
   }
 
-  loadBrands() {
-    this.equipmentService.getBrands().subscribe({
-      next: (data) => {
-        // Agregamos 'TODOS' al principio de la lista que viene de la BD
-        this.brands = ['TODOS', ...data];
-      },
-      error: (err) => console.error('Error cargando marcas', err)
-    });
+  get selectedType(): string { return this.typeFilter$.value; }
+  set selectedType(val: string) { 
+    if (val !== 'TODOS') this.brandFilter$.next('TODOS');
+    this.typeFilter$.next(val); 
   }
 
-  loadStats() {
-    this.equipmentService.getStats(this.selectedBrand).subscribe({
-      next: (data) => this.stats = data,
-      error: (err) => console.error('Error cargando stats', err)
-    });
-  }
+  isAdmin: boolean = false;
 
-  onFilterChange() {
-    this.loadStats();
+  ngOnInit() { // Si no tienes ngOnInit, agrégalo
+      const role = localStorage.getItem('role');
+      this.isAdmin = role === 'ADMIN';
   }
 }

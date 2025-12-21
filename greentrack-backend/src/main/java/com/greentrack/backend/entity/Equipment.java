@@ -5,22 +5,26 @@ import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "equipments")
+@Table(name = "equipos")
 public class Equipment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "nombre", unique = true, nullable = false)
     private String name;
 
+    @Column(name = "tipo")
     private String type;
+
+    @Column(name = "marca")
     private String brand;
 
     @Enumerated(EnumType.STRING)
-    private Status status = Status.AVAILABLE;
+    @Column(name = "estado")
+    private Status status = Status.DISPONIBLE;
 
     public enum Status {
-        AVAILABLE, PRESTADO // Usamos "PRESTADO" para coincidir con el requisito [cite: 37]
+        DISPONIBLE, PRESTADO
     }
 }

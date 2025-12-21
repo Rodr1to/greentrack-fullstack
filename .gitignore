@@ -6,9 +6,6 @@ greentrack-frontend/.angular/
 
 # Java / Spring Boot
 greentrack-backend/target/
-greentrack-backend/.mvn/
-greentrack-backend/mvnw
-greentrack-backend/mvnw.cmd
 .idea/
 *.iml
 *.class

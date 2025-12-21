@@ -39,24 +39,29 @@ public class AuthenticationService {
 
         userRepository.save(user);
 
-        // generar token
+        // token
         var jwtToken = jwtService.generateToken(user);
-        return AuthResponse.builder().token(jwtToken).build();
+        return AuthResponse.builder()
+                .token(jwtToken)
+                .userId(user.getId())
+                .role(user.getRole().name())
+                .username(user.getUsername())
+                .build();
     }
 
     public AuthResponse login(LoginRequest request) {
-        // verificar usuario y contrasena
         authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
 
-        var user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow();
-
+        var user = userRepository.findByUsername(request.getUsername()).orElseThrow();
         var jwtToken = jwtService.generateToken(user);
-        return AuthResponse.builder().token(jwtToken).build();
+
+        return AuthResponse.builder()
+                .token(jwtToken)
+                .userId(user.getId())
+                .role(user.getRole().name())
+                .username(user.getUsername())
+                .build();
     }
 }

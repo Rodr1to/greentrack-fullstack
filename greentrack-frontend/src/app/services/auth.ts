@@ -12,6 +12,10 @@ export class AuthService {
   private router = inject(Router);
   private apiUrl = 'http://localhost:8080/auth'; // backend
 
+  getRole(): string | null {
+  return localStorage.getItem('role');
+}
+
   // iniciar sesion
   login(credentials: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, credentials).pipe(

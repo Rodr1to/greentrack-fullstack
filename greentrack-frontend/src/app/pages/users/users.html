@@ -1,0 +1,91 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+  <div class="d-flex justify-content-between mb-4">
+    <h2>Gestión de Usuarios</h2>
+    <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#newUserModal">
+      + Nuevo Usuario
+    </button>
+  </div>
+
+  <div class="card shadow-sm">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Acciones</th> </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngIf="users$ | async as list">
+          
+          <tr *ngFor="let u of list">
+            <td>{{ u.id }}</td>
+            <td>{{ u.fullName }}</td>
+            <td>{{ u.username }}</td>
+            <td>{{ u.email }}</td>
+            <td>
+              <select class="form-select form-select-sm" 
+                      (change)="onRoleChange(u, $event)"
+                      [disabled]="u.username === currentUsername"> <option value="ADMIN" [selected]="u.role === 'ADMIN'">ADMIN</option>
+                  <option value="USER" [selected]="u.role === 'USER'">USER</option>
+              </select>
+            </td>
+            <td>
+              <button class="btn btn-danger btn-sm" (click)="deleteUser(u)">
+                 <i class="bi bi-trash"></i> Eliminar
+              </button>
+            </td>
+          </tr>
+
+          <tr *ngIf="list.length === 0">
+            <td colspan="6" class="text-center">No hay usuarios registrados.</td>
+          </tr>
+
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal fade" id="newUserModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title">Nuevo Usuario</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+          <div class="mb-3">
+            <label>Nombre Completo</label>
+            <input type="text" class="form-control" formControlName="fullName">
+          </div>
+          <div class="mb-3">
+            <label>Usuario</label>
+            <input type="text" class="form-control" formControlName="username">
+          </div>
+          <div class="mb-3">
+            <label>Email</label>
+            <input type="email" class="form-control" formControlName="email">
+          </div>
+          <div class="mb-3">
+            <label>Contraseña</label>
+            <input type="password" class="form-control" formControlName="password">
+          </div>
+          <div class="mb-3">
+            <label>Rol</label>
+            <select class="form-select" formControlName="role">
+              <option value="USER">USER</option>
+              <option value="ADMIN">ADMIN</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-dark w-100" [disabled]="userForm.invalid">Registrar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

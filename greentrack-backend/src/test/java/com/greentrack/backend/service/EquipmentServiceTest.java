@@ -34,7 +34,7 @@ class EquipmentServiceTest {
         Equipment savedEquipment = new Equipment();
         savedEquipment.setId(1L);
         savedEquipment.setName("Laptop Dell");
-        savedEquipment.setStatus(Equipment.Status.AVAILABLE);
+        savedEquipment.setStatus(Equipment.Status.DISPONIBLE);
 
         // simular comportamiento repositorio
         when(equipmentRepository.existsByName("Laptop Dell")).thenReturn(false);
@@ -47,7 +47,7 @@ class EquipmentServiceTest {
         assertNotNull(result);
         assertEquals(1L, result.getId());
         assertEquals("Laptop Dell", result.getName());
-        assertEquals(Equipment.Status.AVAILABLE, result.getStatus());
+        assertEquals(Equipment.Status.DISPONIBLE, result.getStatus());
 
         // verificar llamada al repositorio
         verify(equipmentRepository).save(any(Equipment.class));

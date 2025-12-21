@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -9,26 +9,28 @@ export class LoanService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:8080/loans'; // endpoint de prestamos
 
-  // headers con token
-  private getAuthHeaders(): HttpHeaders {
-    const token = localStorage.getItem('token');
-    return new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-  }
-
   // mostrar todo
   getAll(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl, { headers: this.getAuthHeaders() });
+    return this.http.get<any[]>(this.apiUrl);
+  }
+
+  // filtros usuario y fecha
+  filter(userId?: number, startDate?: string, endDate?: string): Observable<any[]> {
+    let params = `?`;
+    if (userId) params += `userId=${userId}&`;
+    if (startDate) params += `startDate=${startDate}&`;
+    if (endDate) params += `endDate=${endDate}&`;
+    
+    return this.http.get<any[]>(`${this.apiUrl}/filtrar${params}`);
   }
 
   // crear prestamo
   create(loan: any): Observable<any> {
-    return this.http.post<any>(this.apiUrl, loan, { headers: this.getAuthHeaders() });
+    return this.http.post<any>(this.apiUrl, loan);
   }
 
   // devolver equipo
   returnLoan(id: number): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}/devolver`, {}, { headers: this.getAuthHeaders() });
+    return this.http.put(`${this.apiUrl}/${id}/devolver`, {});
   }
 }

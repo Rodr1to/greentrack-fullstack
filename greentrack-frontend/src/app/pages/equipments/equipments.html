@@ -1,62 +1,100 @@
 <app-navbar></app-navbar>
 
 <div class="container mt-5">
+  
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Inventario de Equipos</h2>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newEquipmentModal">
-      + Nuevo Equipo
-    </button>
+    <div>
+      <h2 class="fw-bold" *ngIf="!showSummary">Inventario (Detalle)</h2>
+      <h2 class="fw-bold" *ngIf="showSummary">Resumen de Existencias</h2>
+    </div>
+    
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary" (click)="toggleView()">
+        {{ showSummary ? 'Ver Lista Detallada' : 'Ver Resumen Stock' }}
+      </button>
+
+      <button *ngIf="isAdmin" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newEquipmentModal">
+        + Nuevo Equipo
+      </button>
+    </div>
   </div>
 
-  <div class="card shadow-sm">
+  <div class="card mb-4 bg-light border-0" *ngIf="!showSummary">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Marca</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterBrand">
+            <option value="TODOS">TODOS</option>
+            <option *ngFor="let b of brands" [value]="b">{{ b }}</option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Tipo</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterType">
+            <option value="TODOS">TODOS</option>
+            <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-bold">Estado</label>
+          <select class="form-select form-select-sm" [(ngModel)]="filterStatus">
+            <option value="TODOS">TODOS</option>
+            <option value="DISPONIBLE">DISPONIBLE</option>
+            <option value="PRESTADO">PRESTADO</option>
+          </select>
+        </div>
+
+        <div class="col-md-3 d-flex gap-2">
+          <button class="btn btn-sm btn-primary w-100" (click)="applyFilters()">Filtrar</button>
+          <button class="btn btn-sm btn-outline-secondary" (click)="clearFilters()">Limpiar</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+ <div class="card shadow-sm">
     <div class="card-body p-0">
       
-      <ng-container *ngIf="equipments$ | async as equipments; else loadingTemplate">
-        
-        <table class="table table-hover mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>ID</th>
-              <th>Nombre</th>
-              <th>Marca</th>
-              <th>Tipo</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngIf="equipments.length === 0">
-              <td colspan="6" class="text-center py-4 text-muted">No hay equipos registrados aún.</td>
-            </tr>
-
-            <tr *ngFor="let item of equipments">
-              <td>#{{ item.id }}</td>
-              <td class="fw-bold">{{ item.name }}</td>
-              <td>{{ item.brand }}</td>
-              <td><span class="badge bg-secondary">{{ item.type }}</span></td>
-              <td>
-                <span class="badge" 
-                  [class.bg-success]="item.status === 'AVAILABLE'"
-                  [class.bg-warning]="item.status === 'PRESTADO'"
-                  [class.bg-danger]="item.status === 'MANTENIMIENTO'">
-                  {{ item.status }}
-                </span>
-              </td>
-              <td><button class="btn btn-sm btn-outline-danger">Eliminar</button></td>
-            </tr>
-          </tbody>
-        </table>
-
+      <ng-container *ngIf="!showSummary">
+        <ng-container *ngIf="equipments$ | async as equipments">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>ID</th><th>Nombre</th><th>Marca</th><th>Tipo</th><th>Estado</th>
+                <th *ngIf="isAdmin">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="equipments.length === 0">
+                <td colspan="6" class="text-center py-4">No hay equipos registrados.</td>
+              </tr>
+              <tr *ngFor="let item of equipments">
+                <td>#{{ item.id }}</td>
+                <td class="fw-bold">{{ item.name }}</td>
+                <td>{{ item.brand }}</td>
+                <td><span class="badge bg-secondary">{{ item.type }}</span></td>
+                <td>
+                   <span class="badge" 
+                        [class.text-bg-success]="item.status === 'DISPONIBLE'"
+                        [class.text-bg-warning]="item.status === 'PRESTADO'">
+                      {{ item.status }}
+                  </span>
+               </td>
+                <td *ngIf="isAdmin">
+                    <button class="btn btn-sm btn-outline-danger" (click)="delete(item.id)">
+                        Eliminar
+                    </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </ng-container>
       </ng-container>
-
-      <ng-template #loadingTemplate>
-        <div class="text-center py-5">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Cargando...</span>
-          </div>
-          <p class="mt-2 text-muted">Cargando inventario...</p>
-        </div>
-      </ng-template>
 
     </div>
   </div>
@@ -71,23 +109,28 @@
       </div>
       <div class="modal-body">
         <form [formGroup]="equipmentForm" (ngSubmit)="onSubmit()">
+          
           <div class="mb-3">
             <label class="form-label">Nombre del Equipo</label>
-            <input type="text" class="form-control" formControlName="name" placeholder="Ej: Monitor Dell 24">
+            <input type="text" class="form-control" formControlName="name" placeholder="Ej: MacBook Pro M3">
           </div>
+
           <div class="mb-3">
             <label class="form-label">Marca</label>
-            <input type="text" class="form-control" formControlName="brand" placeholder="Ej: Dell">
+            <input type="text" class="form-control" formControlName="brand" placeholder="Ej: Apple">
           </div>
+
           <div class="mb-3">
             <label class="form-label">Tipo</label>
             <select class="form-select" formControlName="type">
               <option value="Laptop">Laptop</option>
-              <option value="Monitor">Monitor</option>
               <option value="Periferico">Periférico</option>
+              <option value="Monitor">Monitor</option>
+              <option value="Auriculares">Auriculares</option>
               <option value="Otro">Otro</option>
             </select>
           </div>
+
           <div class="d-grid">
             <button type="submit" class="btn btn-primary" [disabled]="equipmentForm.invalid">
               Guardar Equipo

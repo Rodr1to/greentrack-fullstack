@@ -27,19 +27,28 @@ export class LoginComponent {
   }
 
   onSubmit() {
-    if (this.loginForm.valid) {
-      this.authService.login(this.loginForm.value).subscribe({
-        next: () => {
-          this.toastr.success('¡Bienvenido a GreenTrack!', 'Login Exitoso');
+  if (this.loginForm.valid) {
+    this.authService.login(this.loginForm.value).subscribe({
+      next: (res: any) => {
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('userId', res.userId);
+        localStorage.setItem('role', res.role);
+        localStorage.setItem('username', res.username);
+        
+        this.toastr.success(`Bienvenido ${res.username}`, 'Login Exitoso');
+        
+        if (res.role === 'ADMIN') {
           this.router.navigate(['/dashboard']);
-        },
-        error: (err) => {
-          this.toastr.error('Credenciales incorrectas', 'Error');
-          console.error(err);
+        } else {
+          this.router.navigate(['/loans']); 
         }
-      });
-    } else {
-      this.loginForm.markAllAsTouched();
-    }
+      },
+      error: (err) => {
+        this.toastr.error('Credenciales incorrectas', 'Error');
+      }
+    });
+  } else {
+    this.loginForm.markAllAsTouched();
   }
+}
 }

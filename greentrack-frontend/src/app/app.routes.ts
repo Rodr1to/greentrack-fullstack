@@ -1,15 +1,16 @@
 import { Routes } from '@angular/router';
 import { LoginComponent } from './pages/login/login';          
-import { RegisterComponent } from './pages/register/register'; 
 import { DashboardComponent } from './pages/dashboard/dashboard'; 
 import { EquipmentsComponent } from './pages/equipments/equipments'; 
 import { LoansComponent } from './pages/loans/loans';          
-import { authGuard } from './guards/auth-guard';               
+import { authGuard } from './guards/auth-guard';     
+import { UsersComponent } from './pages/users/users';          
+import { adminGuard } from './guards/admin-guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent },
+
   
   // Rutas protegidas
   { 
@@ -26,5 +27,11 @@ export const routes: Routes = [
     path: 'loans', 
     component: LoansComponent, 
     canActivate: [authGuard] 
-  }
+  },
+  
+  { 
+    path: 'users', 
+    component: UsersComponent, 
+    canActivate: [authGuard, adminGuard] 
+  },
 ];

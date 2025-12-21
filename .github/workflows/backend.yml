@@ -1,0 +1,52 @@
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - 'greentrack-backend/**'
+  pull_request:
+    paths:
+      - 'greentrack-backend/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./greentrack-backend
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: greentrack_db
+          POSTGRES_USER: ci_user
+          POSTGRES_PASSWORD: ci_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 21
+      uses: actions/setup-java@v3
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Permisos para mvnw
+      run: chmod +x mvnw
+
+    - name: Construir con Maven y Ejecutar Pruebas
+      env:
+        SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/greentrack_db
+        SPRING_DATASOURCE_USERNAME: ci_user
+        SPRING_DATASOURCE_PASSWORD: ci_password
+        SPRING_JPA_OPEN_IN_VIEW: false
+      run: ./mvnw clean install -B

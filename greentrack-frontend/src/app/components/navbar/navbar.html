@@ -17,8 +17,17 @@
         <li class="nav-item">
           <a class="nav-link" routerLink="/loans" routerLinkActive="active">Préstamos</a>
         </li>
+
+        <li class="nav-item" *ngIf="isAdmin">
+          <a class="nav-link" routerLink="/users" routerLinkActive="active">Usuarios</a>
+        </li>
+
       </ul>
-      
+     
+      <span class="navbar-text me-3 text-white">
+      Hola, <strong>{{ username }}</strong>
+      </span>
+
       <div class="d-flex">
         <button class="btn btn-outline-light btn-sm" (click)="logout()">
           Cerrar Sesión
